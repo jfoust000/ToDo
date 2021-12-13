@@ -1,10 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Need To Do</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet">
+    <link rel="stylesheet" href="ToDo.css">
 </head>
 <body>
-$END$
+<input type="text" placeholder="Enter New To-Do">
+<p><input type="text" placeholder="Enter Category" list="categoryList"></p>
+<datalist id="categoryList">
+    <option value="Work"></option>
+    <option value="Shopping"></option>
+    <option value="Phone Calls"></option>
+    <option value="Personal Tasks"></option>
+</datalist>
+<button id="addBtn">Add</button>
+<ul></ul>
+<table id="todoTable">
+    <tr>
+        <td>Checkbox</td>
+        <td>To-Do</td>
+        <td>
+            <select id="categoryFilter">
+                <option value="All Categories">All Categories</option>
+                <option value="Work">Work</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Phone Calls">Phone Calls</option>
+                <option value="Personal Tasks">Personal Tasks</option>
+            </select>
+        </td>
+        <td>Delete</td>
+
+    </tr>
+</table>
+<script src="ToDo.js"></script>
 </body>
 </html>
