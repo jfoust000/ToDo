@@ -37,13 +37,17 @@ function todoMain(){
         let inputValue2 = categoryElement.value;
         categoryElement.value = "";
 
-
-
-        todoListStorageData.push({
+        let obj = {
+            id: _uuid(),
             todo: inputValue,
             category: inputValue2,
-        });
-        renderRow(todoListStorageData);
+            completed: false,
+        }
+
+        renderRow(obj);
+
+        todoListStorageData.push(obj);
+
         save();
 
         upDateSelectOptions();
@@ -132,7 +136,7 @@ function todoMain(){
         renderRow(todoObj);
     })
     }
-    function renderRow({todo: inputValue, category: inputValue2}){
+    function renderRow({todo: inputValue, category: inputValue2, id, completed}){
 
         //Add a new row
 
@@ -145,6 +149,7 @@ function todoMain(){
         let checkboxElement = document.createElement("input");
         checkboxElement.type = "checkbox";
         checkboxElement.addEventListener("click", done, false);
+        checkboxElement.dataset.id = id;
 
         let tdElement1 = document.createElement("td");
         tdElement1.appendChild(checkboxElement);
@@ -166,19 +171,61 @@ function todoMain(){
         spanElement.innerText = "delete";
         spanElement.className = "material-icons";
         spanElement.addEventListener("click", deleteItem, false);
-
+        spanElement.dataset.id = id;
         let tdDeleteElement = document.createElement("td");
         tdDeleteElement.appendChild(spanElement);
         trElement.appendChild(tdDeleteElement);
+
+        checkboxElement.checked = completed;
+
+        if(completed){
+            trElement.classList.add("strike");
+        }else{
+            trElement.classList.remove("strike");
+        }
+
 
         function deleteItem(){
             trElement.remove();
 
             upDateSelectOptions();
+
+            for(let i = 0; i < todoListStorageData.length; i++) {
+
+                if (todoListStorageData[i].id == this.dataset.id) {
+                    todoListStorageData.splice(i, 1);
+                }
+            }
+            save();
         }
 
         function done(){
             trElement.classList.toggle("strike");
+
+            //check for element ["completed"] = this.checked
+
+            for(let i = 0; i < todoListStorageData.length; i++) {
+
+                if (todoListStorageData[i].id == this.dataset.id) {
+                    todoListStorageData[i]["completed"] = this.checked;
+               }
+            }
+            save();
+
         }
+
+
+    }
+
+    function _uuid() {
+        let d = Date.now();
+        if (typeof performance !== 'undefined' && typeof performance.now === 'function'){
+            d += performance.now(); //use high-precision timer if available
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            let r = (d + Math.random() * 16) % 16 | 0;
+            d = Math.floor(d / 16);
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
     }
 }
