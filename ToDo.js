@@ -6,6 +6,8 @@ function todoMain(){
 
     let inputElement,
         categoryElement,
+        dateInput,
+        timeInput,
         addButton,
         selectElement,
         todoListStorageData = [];
@@ -22,6 +24,8 @@ function todoMain(){
         categoryElement = document.getElementsByTagName("input")[1];
         addButton = document.getElementById("addBtn");
         selectElement = document.getElementById("categoryFilter");
+        dateInput = document.getElementById("dateInput");
+        timeInput = document.getElementById("timeInput");
     }
 
     function addListeners(){
@@ -37,10 +41,18 @@ function todoMain(){
         let inputValue2 = categoryElement.value;
         categoryElement.value = "";
 
+        let dateValue = dateInput.value;
+        dateInput.value = "";
+
+        let timeValue = timeInput.value;
+        timeInput.value = "";
+
         let obj = {
             id: _uuid(),
             todo: inputValue,
             category: inputValue2,
+            date: dateValue,
+            time: timeValue,
             completed: false,
         }
 
@@ -136,7 +148,7 @@ function todoMain(){
         renderRow(todoObj);
     })
     }
-    function renderRow({todo: inputValue, category: inputValue2, id, completed}){
+    function renderRow({ id: id, todo: inputValue, category: inputValue2, date: dateValue, time: timeValue, completed: completed }){
 
         //Add a new row
 
@@ -155,6 +167,35 @@ function todoMain(){
         tdElement1.appendChild(checkboxElement);
         trElement.appendChild(tdElement1);
 
+        //date cell
+        let dateElement = document.createElement("td");
+        let dateObject = new Date(dateValue);
+        let formattedDate = dateObject.toLocaleDateString("en-US", {month: "long", day: "numeric", year: "numeric" });
+        dateElement.innerText = formattedDate;
+        trElement.appendChild(dateElement);
+
+        //time cell
+        let timeElement = document.createElement("td");
+
+        let originalTime = timeValue;
+        let originalHour = originalTime.substr(0,2);
+        let intHour = parseInt(originalHour);
+        let dayOrNight = " AM";
+
+        let formattedTime = "";
+        let formattedHour = "";
+
+        if (intHour > 12){
+           intHour = intHour - 12;
+           dayOrNight = " PM";
+        }
+
+
+        formattedHour = intHour.toString();
+        formattedTime = originalTime.replace(originalHour, formattedHour);
+
+        timeElement.innerText = formattedTime + dayOrNight;
+        trElement.appendChild(timeElement);
 
         //to-do cell
         let tdToDoElement = document.createElement("td");
