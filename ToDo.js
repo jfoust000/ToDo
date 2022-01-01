@@ -1,6 +1,6 @@
 todoMain();
 
-function todoMain(){
+function todoMain() {
 
     const DEFAULT_CATEGORY_FILTER = "All Categories";
 
@@ -9,6 +9,7 @@ function todoMain(){
         dateInput,
         timeInput,
         addButton,
+        sortButton,
         selectElement,
         todoListStorageData = [];
 
@@ -19,21 +20,23 @@ function todoMain(){
     renderRows();
     upDateSelectOptions();
 
-    function getElements(){
+    function getElements() {
         inputElement = document.getElementsByTagName("input")[0];
         categoryElement = document.getElementsByTagName("input")[1];
         addButton = document.getElementById("addBtn");
+        sortButton = document.getElementById("sortBtn");
         selectElement = document.getElementById("categoryFilter");
         dateInput = document.getElementById("dateInput");
         timeInput = document.getElementById("timeInput");
     }
 
-    function addListeners(){
-    addButton.addEventListener("click", addEntry, false);
-    selectElement.addEventListener("change", filterEntries, false);
+    function addListeners() {
+        addButton.addEventListener("click", addEntry, false);
+        sortButton.addEventListener("click", sortToDoList, false);
+        selectElement.addEventListener("change", filterEntries, false);
     }
 
-    function addEntry(){
+    function addEntry() {
 
         let inputValue = inputElement.value;
         inputElement.value = "";
@@ -69,44 +72,32 @@ function todoMain(){
     function filterEntries() {
         let selection = selectElement.value;
 
-        if(selection === DEFAULT_CATEGORY_FILTER){
+        let trElements  = document.getElementsByTagName("tr");
+        for(let i = trElements.length - 1; i > 0; i--){
+            trElements[i].remove();
+        }
+        //empty the table rows - keeping the first row
+        if (selection === DEFAULT_CATEGORY_FILTER) {
 
-            let rows = document.getElementsByTagName("tr");
+            todoListStorageData.forEach(obj => renderRow(obj));
 
-            Array.from(rows).forEach((row)=>{
-                row.style.display = "";
+        } else {
+
+            todoListStorageData.forEach( obj => {
+                if( obj.category === selection){
+                    renderRow(obj);
+                }
             });
-        }else{
-        let rows = document.getElementsByTagName("tr");
 
-        Array.from(rows).forEach((row, index)=>{
-            if(index===0){
-                return;
-            }
-            let category = row.getElementsByTagName("td")[2].innerText;
-            if (category === selectElement.value){
-                row.style.display = "";
-            }else {
-                row.style.display = "none";
-            }
-        });
         }
 
     }
-    function upDateSelectOptions(){
+
+    function upDateSelectOptions() {
         let options = [];
 
-        let rows = document.getElementsByTagName("tr");
-
-        Array.from(rows).forEach((row, index)=> {
-            if (index === 0) {
-                return;
-            }
-            let category = row.getElementsByTagName("td")[2].innerText;
-
-                options.push(category);
-
-
+        todoListStorageData.forEach((obj)=>{
+            options.push(obj.category);
         });
 
         let optionsSet = new Set(options);
@@ -120,7 +111,7 @@ function todoMain(){
         newOptionElement.innerText = DEFAULT_CATEGORY_FILTER;
         selectElement.appendChild(newOptionElement);
 
-        for (let option of optionsSet){
+        for (let option of optionsSet) {
             let newOptionElement = document.createElement('option');
             newOptionElement.value = option;
             newOptionElement.innerText = option;
@@ -130,25 +121,38 @@ function todoMain(){
 
 
     }
-    function save(){
+
+    function save() {
         let stringified = JSON.stringify(todoListStorageData);
         localStorage.setItem("todoListStorageData", stringified);
     }
-    function load(){
+
+    function load() {
 
         let retrievedStorageData = localStorage.getItem("todoListStorageData");
         todoListStorageData = JSON.parse(retrievedStorageData);
-        if (todoListStorageData === null){
+        if (todoListStorageData === null) {
             todoListStorageData = [];
         }
 
     }
-    function renderRows(){
-    todoListStorageData.forEach(todoObj => {
-        renderRow(todoObj);
-    })
+
+    function renderRows() {
+        todoListStorageData.forEach(todoObj => {
+            renderRow(todoObj);
+        })
+
     }
-    function renderRow({ id: id, todo: inputValue, category: inputValue2, date: dateValue, time: timeValue, completed: completed }){
+
+    //add cells to the table row
+    function renderRow({
+                           id: id,
+                           todo: inputValue,
+                           category: inputValue2,
+                           date: dateValue,
+                           time: timeValue,
+                           completed: completed
+                       }) {
 
         //Add a new row
 
@@ -170,31 +174,48 @@ function todoMain(){
         //date cell
         let dateElement = document.createElement("td");
         let dateObject = new Date(dateValue);
-        let formattedDate = dateObject.toLocaleDateString("en-US", {month: "long", day: "numeric", year: "numeric" });
+        let formattedDate = dateObject.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            timeZone: 'UTC'
+        });
+
         dateElement.innerText = formattedDate;
         trElement.appendChild(dateElement);
 
         //time cell
         let timeElement = document.createElement("td");
 
-        let originalTime = timeValue;
-        let originalHour = originalTime.substr(0,2);
-        let intHour = parseInt(originalHour);
-        let dayOrNight = " AM";
+        //force time to be formatted in 12 hour time, not 24 hour time
 
+        //store timeValue into a variable to keep the time value as string and perform operations
+        let originalTime = timeValue;
+        //get the hour from the time
+        let originalHour = originalTime.substr(0, 2);
+        //return int value of the hour and store into a variable
+        let intHour = parseInt(originalHour);
+        //dayOrNight will be AM or PM depending on hour being greater than 12
+        let dayOrNight = " AM";
+        //formattedTime will store the time with the newly formatted hour
         let formattedTime = "";
+        //formattedHour will store the newly formatted hour
         let formattedHour = "";
 
-        if (intHour > 12){
-           intHour = intHour - 12;
-           dayOrNight = " PM";
+        //check if the hour is greater than 12.
+        // if it is, subtract 12 from the hour and set dayOrNight to PM
+        if (intHour > 12) {
+            intHour = intHour - 12;
+            dayOrNight = " PM";
         }
 
-
+        //convert intHour to string and assign to formatted hour
         formattedHour = intHour.toString();
+        //replace originalTime's original hour with the new formatted hour
         formattedTime = originalTime.replace(originalHour, formattedHour);
-
+        //set timeElement's inner text to the formatted time followed by AM or PM
         timeElement.innerText = formattedTime + dayOrNight;
+        //add the timeElement td to the row
         trElement.appendChild(timeElement);
 
         //to-do cell
@@ -205,6 +226,7 @@ function todoMain(){
         //category cell
         let tdCategoryElement = document.createElement("td");
         tdCategoryElement.innerText = inputValue2;
+        tdCategoryElement.className = "categoryCell";
         trElement.appendChild(tdCategoryElement);
 
         //delete cell
@@ -219,19 +241,19 @@ function todoMain(){
 
         checkboxElement.checked = completed;
 
-        if(completed){
+        if (completed) {
             trElement.classList.add("strike");
-        }else{
+        } else {
             trElement.classList.remove("strike");
         }
 
 
-        function deleteItem(){
+        function deleteItem() {
             trElement.remove();
 
             upDateSelectOptions();
 
-            for(let i = 0; i < todoListStorageData.length; i++) {
+            for (let i = 0; i < todoListStorageData.length; i++) {
 
                 if (todoListStorageData[i].id == this.dataset.id) {
                     todoListStorageData.splice(i, 1);
@@ -240,16 +262,16 @@ function todoMain(){
             save();
         }
 
-        function done(){
+        function done() {
             trElement.classList.toggle("strike");
 
             //check for element ["completed"] = this.checked
 
-            for(let i = 0; i < todoListStorageData.length; i++) {
+            for (let i = 0; i < todoListStorageData.length; i++) {
 
                 if (todoListStorageData[i].id == this.dataset.id) {
                     todoListStorageData[i]["completed"] = this.checked;
-               }
+                }
             }
             save();
 
@@ -260,7 +282,7 @@ function todoMain(){
 
     function _uuid() {
         let d = Date.now();
-        if (typeof performance !== 'undefined' && typeof performance.now === 'function'){
+        if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
             d += performance.now(); //use high-precision timer if available
         }
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -269,4 +291,20 @@ function todoMain(){
             return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
         });
     }
+
+    function sortToDoList() {
+        todoListStorageData.sort((a, b) => {
+        let aDate = Date.parse(a.date);
+        let bDate = Date.parse(b.date);
+        return aDate - bDate;
+    });
+        save();
+        //empty the table rows - keeping the first row
+        let trElements  = document.getElementsByTagName("tr");
+        for(let i = trElements.length - 1; i > 0; i--){
+            trElements[i].remove();
+        }
+        renderRows();
+}
+
 }
